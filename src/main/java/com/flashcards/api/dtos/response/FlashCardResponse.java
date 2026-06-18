@@ -20,14 +20,25 @@ public record FlashCardResponse(
         DifficultyLevel difficulty,
         CardStatus status,
         Boolean favorite,
+        UUID deckId,
         LocalDateTime createdAt
 ) {
     public FlashCardResponse(FlashCard card) {
         this(
-                card.getId(), card.getWord(), card.getTranslation(),
-                card.getPast(), card.getPresent(), card.getFuture(),
-                card.getExamplePhrase1(), card.getExamplePhrase2(), card.getExamplePhrase3(),
-                card.getDifficulty(), card.getStatus(), card.getFavorite(), card.getCreatedAt()
+                card.getId(),
+                card.getWord(),
+                card.getTranslation(),
+                card.getPast(),
+                card.getPresent(),
+                card.getFuture(),
+                card.getExamplePhrase1(),
+                card.getExamplePhrase2(),
+                card.getExamplePhrase3(),
+                card.getDifficulty(),
+                card.getStatus(),
+                card.getFavorite(),
+                card.getDeck().getId(),
+                card.getCreatedAt()
         );
     }
 }
