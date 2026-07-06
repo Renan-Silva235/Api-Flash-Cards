@@ -11,6 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.flashcards.api.entities.User;
+import com.flashcards.api.security.userDetails.CustomUserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -27,11 +32,15 @@ public class StudySessionService {
     public StudySession startSession(StartSessionRequestDTO dto) {
         Deck deck = deckRepository.findById(dto.deckId())
                 .orElseThrow(() -> new ResourceNotFoundException("Deck não encontrado com o ID fornecido."));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        User user = userDetails.getUser();
         StudySession session = new StudySession();
         session.setDeck(deck);
+        session.setUser(user);
         session.setStartedAt(LocalDateTime.now());
-
         return studySessionRepository.save(session);
     }
 
