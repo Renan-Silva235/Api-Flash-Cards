@@ -3,6 +3,7 @@ package com.flashcards.api.services;
 import com.flashcards.api.dtos.request.CreateFlashCardRequest;
 import com.flashcards.api.entities.Deck;
 import com.flashcards.api.entities.FlashCard;
+import com.flashcards.api.enums.CardStatus;
 import com.flashcards.api.repositories.DeckRepository;
 import com.flashcards.api.repositories.FlashCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,13 @@ public class FlashCardService {
 
     @Transactional(readOnly = true)
     public List<FlashCard> listByDeck(UUID deckId) {
-        return flashCardRepository.findByDeckId(deckId);
+        return flashCardRepository.findByDeckIdAndStatusIn(
+                deckId,
+                List.of(
+                        CardStatus.LEARNING,
+                        CardStatus.REVIEWED
+                )
+        );
     }
 
     @Transactional(readOnly = true)
@@ -54,10 +61,12 @@ public class FlashCardService {
 
     @Transactional
     public void delete(UUID id) {
+        System.out.println("DELETANDO CARD: " + id);
         if (!flashCardRepository.existsById(id)) {
             throw new RuntimeException("Flashcard não encontrado.");
         }
         flashCardRepository.deleteById(id);
+        System.out.println("EXISTE DEPOIS DO DELETE? " + flashCardRepository.existsById(id));
     }
 
     private void updateCardFields(FlashCard card, CreateFlashCardRequest dto) {

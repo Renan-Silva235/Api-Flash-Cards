@@ -4,6 +4,7 @@ import com.flashcards.api.dtos.request.RecordReviewRequestDTO;
 import com.flashcards.api.entities.FlashCard;
 import com.flashcards.api.entities.StudyRecord;
 import com.flashcards.api.entities.StudySession;
+import com.flashcards.api.enums.CardStatus;
 import com.flashcards.api.enums.DifficultyLevel;
 import com.flashcards.api.enums.StudyResult;
 import com.flashcards.api.exceptions.ResourceNotFoundException;
@@ -42,13 +43,22 @@ public class StudyRecordService {
         record.setResult(dto.result());
         record.setDifficultyLevel(flashcard.getDifficulty());
 
-        if (dto.result() == StudyResult.MISTAKE) {
-            flashcard.setDifficulty(DifficultyLevel.HARD);
-        } else if (dto.result() == StudyResult.DIFFICULT) {
-            flashcard.setDifficulty(DifficultyLevel.MEDIUM);
+        switch (dto.result()) {
+            case MISTAKE:
+                flashcard.setDifficulty(DifficultyLevel.HARD);
+                break;
+
+            case DIFFICULT:
+                flashcard.setDifficulty(DifficultyLevel.MEDIUM);
+                break;
+
+            case HIT:
+                flashcard.setDifficulty(DifficultyLevel.EASY);
+                break;
         }
 
         flashCardRepository.save(flashcard);
+
         return studyRecordRepository.save(record);
     }
 }
