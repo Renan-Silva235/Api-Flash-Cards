@@ -10,10 +10,19 @@ public record DeckResponseDTO(
         String name,
         String language,
         String category,
+        Boolean favorite,
         UUID userId,
         LocalDateTime createdAt
 ) {
     public DeckResponseDTO(Deck deck) {
-        this(deck.getId(), deck.getName(), deck.getLanguage(), deck.getCategory(), deck.getUser().getId(), deck.getCreatedAt());
+        this(
+                deck.getId(),
+                deck.getName(),
+                deck.getLanguage(),
+                deck.getCategory(),
+                deck.getFavorite(),
+                deck.getUser().getId(),
+                deck.getCreatedAt()
+        );
     }
 }

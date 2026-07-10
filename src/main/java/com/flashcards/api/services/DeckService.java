@@ -53,4 +53,14 @@ public class DeckService {
         }
         deckRepository.deleteById(id);
     }
+
+    @Transactional
+    public Deck toggleFavorite(UUID id) {
+        Deck deck = deckRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Deck não encontrado."));
+
+        deck.setFavorite(!deck.getFavorite());
+
+        return deckRepository.save(deck);
+    }
 }

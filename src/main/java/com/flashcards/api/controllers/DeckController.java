@@ -43,6 +43,12 @@ public class DeckController {
         return ResponseEntity.ok(new DeckResponseDTO(deck));
     }
 
+    @PatchMapping("/{id}/favorite")
+    public ResponseEntity<DeckResponseDTO> toggleFavorite(@PathVariable UUID id) {
+        Deck deck = deckService.toggleFavorite(id);
+        return ResponseEntity.ok(new DeckResponseDTO(deck));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         deckService.deleteDeck(id);

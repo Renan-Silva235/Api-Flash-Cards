@@ -28,6 +28,9 @@ public class Deck {
     @Column(nullable = false)
     private String category;
 
+    @Column(nullable = false)
+    private Boolean favorite = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
