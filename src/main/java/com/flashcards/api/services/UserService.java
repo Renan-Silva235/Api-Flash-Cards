@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 @Service
 public class UserService {
 
@@ -28,5 +29,15 @@ public class UserService {
         String encryptedPassword = passwordEncoder.encode(dto.password());
         user.setPassword(encryptedPassword);
         return userRepository.save(user);
+    }
+
+    public void changePassword(String email, String newPassword) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        userRepository.save(user);
     }
 }

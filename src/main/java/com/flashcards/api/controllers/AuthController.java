@@ -1,11 +1,22 @@
 package com.flashcards.api.controllers;
 
+import com.flashcards.api.dtos.request.ChangePasswordDTO;
 import com.flashcards.api.dtos.request.LoginRequestDTO;
+import com.flashcards.api.dtos.request.SendVerificationCodeDTO;
+import com.flashcards.api.dtos.request.VerifyCodeDTO;
 import com.flashcards.api.dtos.response.LoginResponseDTO;
+import com.flashcards.api.dtos.response.UserResponseDTO;
+import com.flashcards.api.enums.VerificationType;
+import com.flashcards.api.security.jwt.JwtService;
+import com.flashcards.api.security.userDetails.CustomUserDetails;
 import com.flashcards.api.services.AuthService;
+import com.flashcards.api.services.EmailService;
+import com.flashcards.api.services.UserService;
+import com.flashcards.api.services.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,10 +25,94 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private VerificationService verificationService;
+
+    @Autowired
+    private UserService userService;
+
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO dto) {
-        String jwtToken = authService.authenticate(dto);
-        return ResponseEntity.ok(new LoginResponseDTO(jwtToken));
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDTO dto) {
+
+        Authentication authentication = authService.authenticate(dto);
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        String token = jwtService.generateToken(authentication);
+
+        return ResponseEntity.ok(
+                new LoginResponseDTO(
+                        token,
+                        "Bearer",
+                        new UserResponseDTO(userDetails.getUser())
+                )
+        );
+    }
+
+    @PostMapping("/test-email")
+    public ResponseEntity<String> sendTestEmail() {
+
+        emailService.sendTestEmail("renan.rubio95@gmail.com");
+
+        return ResponseEntity.ok("E-mail enviado com sucesso!");
+    }
+
+    @PostMapping("/password/send-code")
+    public ResponseEntity<Void> sendPasswordCode(
+            @RequestBody @Valid SendVerificationCodeDTO dto
+    ) {
+
+        verificationService.sendCode(
+                dto.email(),
+                VerificationType.CHANGE_PASSWORD
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password/verify-code")
+    public ResponseEntity<Void> verifyCode(
+            @RequestBody @Valid VerifyCodeDTO dto
+    ) {
+
+        verificationService.validateCode(
+                dto.email(),
+                dto.code(),
+                VerificationType.CHANGE_PASSWORD
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password/change")
+    public ResponseEntity<Void> changePassword(
+            @RequestBody @Valid ChangePasswordDTO dto
+    ) {
+
+        verificationService.validateCode(
+                dto.email(),
+                dto.code(),
+                VerificationType.CHANGE_PASSWORD
+        );
+
+        userService.changePassword(
+                dto.email(),
+                dto.newPassword()
+        );
+
+        verificationService.markAsUsed(
+                dto.email(),
+                dto.code(),
+                VerificationType.CHANGE_PASSWORD
+        );
+
+        return ResponseEntity.ok().build();
     }
 }

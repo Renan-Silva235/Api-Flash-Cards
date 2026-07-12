@@ -19,12 +19,11 @@ public class AuthService {
     @Autowired
     private JwtService jwtService;
 
-    public String authenticate(LoginRequestDTO dto) {
+    public Authentication authenticate(LoginRequestDTO dto) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(dto.email(), dto.password())
             );
-            return jwtService.generateToken(authentication);
         } catch (BadCredentialsException e) {
             throw new UnauthorizedException("E-mail ou senha incorretos.");
         }
