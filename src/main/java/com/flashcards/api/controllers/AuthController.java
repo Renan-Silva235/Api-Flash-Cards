@@ -56,19 +56,12 @@ public class AuthController {
         );
     }
 
-    @PostMapping("/test-email")
-    public ResponseEntity<String> sendTestEmail() {
-
-        emailService.sendTestEmail("renan.rubio95@gmail.com");
-
-        return ResponseEntity.ok("E-mail enviado com sucesso!");
-    }
 
     @PostMapping("/password/send-code")
     public ResponseEntity<Void> sendPasswordCode(
             @RequestBody @Valid SendVerificationCodeDTO dto
     ) {
-
+        userService.validateEmailExists(dto.email());
         verificationService.sendCode(
                 dto.email(),
                 VerificationType.CHANGE_PASSWORD
@@ -111,6 +104,33 @@ public class AuthController {
                 dto.email(),
                 dto.code(),
                 VerificationType.CHANGE_PASSWORD
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register/send-code")
+    public ResponseEntity<Void> sendRegisterCode(
+            @RequestBody @Valid SendVerificationCodeDTO dto
+    ) {
+        userService.validateEmailAvailability(dto.email());
+        verificationService.sendCode(
+                dto.email(),
+                VerificationType.REGISTER
+        );
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register/verify-code")
+    public ResponseEntity<Void> verifyRegisterCode(
+            @RequestBody @Valid VerifyCodeDTO dto
+    ) {
+
+        verificationService.validateCode(
+                dto.email(),
+                dto.code(),
+                VerificationType.REGISTER
         );
 
         return ResponseEntity.ok().build();

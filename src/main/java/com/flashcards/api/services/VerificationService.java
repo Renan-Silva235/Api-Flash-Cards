@@ -32,13 +32,15 @@ public class VerificationService {
     }
 
     public void validateCode(String email, String code, VerificationType type) {
-
+        System.out.println("EMAIL: " + email);
+        System.out.println("CODE: " + code);
+        System.out.println("TYPE: " + type);
         VerificationCode verificationCode = verificationCodeRepository
                 .findByEmailAndCodeAndType(email, code, type)
                 .orElseThrow(() ->
                         new RuntimeException("Código inválido.")
                 );
-
+        System.out.println("Código encontrado no banco!");
         if (verificationCode.isUsed()) {
             throw new RuntimeException("Este código já foi utilizado.");
         }

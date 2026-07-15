@@ -37,7 +37,20 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
-
         userRepository.save(user);
+    }
+
+    public void validateEmailAvailability(String email) {
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Este e-mail já está cadastrado.");
+        }
+    }
+
+    public void validateEmailExists(String email) {
+
+        if (userRepository.findByEmail(email).isEmpty()) {
+            throw new RuntimeException("Não foi encontrado nenhum usuário com este e-mail.");
+        }
     }
 }
