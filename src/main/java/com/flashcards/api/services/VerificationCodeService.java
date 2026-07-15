@@ -15,7 +15,7 @@ public class VerificationCodeService {
     @Autowired
     private VerificationCodeRepository repository;
 
-    private static final int EXPIRATION_MINUTES = 50    ;
+    private static final int EXPIRATION_MINUTES = 7    ;
 
     public VerificationCode generate(String email, VerificationType type) {
 

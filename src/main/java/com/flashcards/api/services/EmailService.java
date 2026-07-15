@@ -30,7 +30,7 @@ public class EmailService {
 
             %s
 
-            Este código expira em 3 minutos.
+            Este código expira em 7 minutos.
 
             Se você não solicitou esta operação, ignore este e-mail.
             """.formatted(code));
