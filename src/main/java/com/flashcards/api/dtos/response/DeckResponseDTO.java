@@ -12,6 +12,7 @@ public record DeckResponseDTO(
         String category,
         Boolean favorite,
         UUID userId,
+        Integer cardsCount,
         LocalDateTime createdAt
 ) {
     public DeckResponseDTO(Deck deck) {
@@ -22,6 +23,7 @@ public record DeckResponseDTO(
                 deck.getCategory(),
                 deck.getFavorite(),
                 deck.getUser().getId(),
+                deck.getFlashcards() == null ? 0 : deck.getFlashcards().size(),
                 deck.getCreatedAt()
         );
     }

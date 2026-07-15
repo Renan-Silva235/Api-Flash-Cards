@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -37,6 +38,9 @@ public class Deck {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "deck", fetch = FetchType.LAZY)
+    private List<FlashCard> flashcards;
 
     @PrePersist
     protected void onCreate() {
