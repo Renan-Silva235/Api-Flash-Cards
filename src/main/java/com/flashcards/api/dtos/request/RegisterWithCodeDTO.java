@@ -14,7 +14,7 @@ public record RegisterWithCodeDTO(
         String email,
 
         @NotBlank(message = "A senha é obrigatória")
-        @Size(min = 6, max = 6, message = "A senha deve conter exatamente 6 caracteres.")
+        @Size(min = 6,  message = "A senha ter no mínimo 6 caracteres.")
         String password,
 
         @NotBlank(message = "O código é obrigatório")
