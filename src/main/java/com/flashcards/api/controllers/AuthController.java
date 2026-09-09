@@ -15,6 +15,8 @@ import com.flashcards.api.services.UserService;
 import com.flashcards.api.services.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -41,20 +43,33 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid LoginRequestDTO dto) {
 
+        // 1. Autentica o usuário e gera o token JWT
         Authentication authentication = authService.authenticate(dto);
-
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
         String token = jwtService.generateToken(authentication);
 
-        return ResponseEntity.ok(
-                new LoginResponseDTO(
-                        token,
-                        "Bearer",
-                        new UserResponseDTO(userDetails.getUser())
-                )
+        // 2. Cria o cookie HttpOnly (Será ignorado pelo Mobile, mas usado pela Web)
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", token)
+                .httpOnly(true)
+                .secure(true) // Lembre de mudar para false se testar localmente em HTTP na Web
+                .path("/")
+                .maxAge(24 * 60 * 60) // 1 dia
+                .sameSite("Lax")
+                .build();
+
+        // 3. Monta o corpo da resposta contendo o token (Para o Mobile ler do JSON)
+        LoginResponseDTO responseBody = new LoginResponseDTO(
+                token,
+                "Bearer",
+                new UserResponseDTO(userDetails.getUser())
         );
+
+        // 4. Retorna o Cookie no Header E o Token no Body
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(responseBody);
     }
+
 
 
     @PostMapping("/password/send-code")
