@@ -51,7 +51,7 @@ public class AuthController {
         // 2. Cria o cookie HttpOnly (Será ignorado pelo Mobile, mas usado pela Web)
         ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", token)
                 .httpOnly(true)
-                .secure(true) // Lembre de mudar para false se testar localmente em HTTP na Web
+                .secure(false) // Lembre de mudar para false se testar localmente em HTTP na Web
                 .path("/")
                 .maxAge(24 * 60 * 60) // 1 dia
                 .sameSite("Lax")
