@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Deck {
+public class    Deck {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
