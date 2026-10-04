@@ -15,6 +15,7 @@ import com.flashcards.api.services.UserService;
 import com.flashcards.api.services.VerificationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,17 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    // Cookie do login: localmente (HTTP, mesmo site) funciona com Secure=false e SameSite=Lax.
+    // Em produção, com front e back em domínios diferentes (Vercel x Render), defina no Render:
+    //   COOKIE_SECURE=true
+    //   COOKIE_SAME_SITE=None
+    // (o navegador só aceita SameSite=None se o cookie também for Secure, ou seja, HTTPS)
+    @Value("${COOKIE_SECURE:false}")
+    private boolean cookieSecure;
+
+    @Value("${COOKIE_SAME_SITE:Lax}")
+    private String cookieSameSite;
     @Autowired
     private JwtService jwtService;
 
@@ -51,13 +63,7 @@ public class AuthController {
         String token = jwtService.generateToken(authentication);
 
         // 2. Cria o cookie HttpOnly (Será ignorado pelo Mobile, mas usado pela Web)
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", token)
-                .httpOnly(true)
-                .secure(false) // Lembre de mudar para false se testar localmente em HTTP na Web
-                .path("/")
-                .maxAge(24 * 60 * 60) // 1 dia
-                .sameSite("Lax")
-                .build();
+        ResponseCookie jwtCookie = buildJwtCookie(token, 24 * 60 * 60); // 1 dia
 
         // 3. Monta o corpo da resposta contendo o token (Para o Mobile ler do JSON)
         LoginResponseDTO responseBody = new LoginResponseDTO(
@@ -77,13 +83,7 @@ public class AuthController {
     public ResponseEntity<Void> logout() {
 
         // Sobrescreve o cookie com um valor vazio e maxAge 0, fazendo o navegador apagá-lo
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie jwtCookie = buildJwtCookie("", 0);
 
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
@@ -177,5 +177,17 @@ public class AuthController {
         );
 
         return ResponseEntity.ok().build();
+    }
+
+    // Login e logout precisam gerar o cookie com os MESMOS atributos,
+    // senão o navegador não reconhece como o mesmo cookie e não apaga no logout
+    private ResponseCookie buildJwtCookie(String value, long maxAgeSeconds) {
+        return ResponseCookie.from("jwt_token", value)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .sameSite(cookieSameSite)
+                .build();
     }
 }
