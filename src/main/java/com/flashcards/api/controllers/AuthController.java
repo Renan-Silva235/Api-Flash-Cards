@@ -7,6 +7,7 @@ import com.flashcards.api.dtos.request.VerifyCodeDTO;
 import com.flashcards.api.dtos.response.LoginResponseDTO;
 import com.flashcards.api.dtos.response.UserResponseDTO;
 import com.flashcards.api.enums.VerificationType;
+import com.flashcards.api.security.CurrentUserService;
 import com.flashcards.api.security.jwt.JwtService;
 import com.flashcards.api.security.userDetails.CustomUserDetails;
 import com.flashcards.api.services.AuthService;
@@ -30,6 +31,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // Cookie do login (guarda o JWT).
     // Secure: o navegador só envia o cookie por HTTPS. O padrão é SEGURO (true), então a
@@ -78,6 +82,14 @@ public class AuthController {
                 .body(responseBody);
     }
 
+
+    // Devolve o usuário dono do token (cookie na Web, header Authorization no Mobile).
+    // O front chama ao abrir o app para restaurar o login depois de recarregar a página.
+    // Sem token válido, o filtro JWT / Spring Security responde 401.
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> me() {
+        return ResponseEntity.ok(new UserResponseDTO(currentUserService.getCurrentUser()));
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
