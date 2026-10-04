@@ -31,12 +31,12 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    // Cookie do login: localmente (HTTP, mesmo site) funciona com Secure=false e SameSite=Lax.
-    // Em produção, com front e back em domínios diferentes (Vercel x Render), defina no Render:
-    //   COOKIE_SECURE=true
-    //   COOKIE_SAME_SITE=None
-    // (o navegador só aceita SameSite=None se o cookie também for Secure, ou seja, HTTPS)
-    @Value("${COOKIE_SECURE:false}")
+    // Cookie do login (guarda o JWT).
+    // Secure: o navegador só envia o cookie por HTTPS. O padrão é SEGURO (true), então a
+    // produção já nasce protegida mesmo sem configurar nada. Para rodar localmente em HTTP,
+    // coloque COOKIE_SECURE=false no .env.
+    // SameSite: Lax funciona porque o front chama a API pelo mesmo site (rewrite /api na Vercel).
+    @Value("${COOKIE_SECURE:true}")
     private boolean cookieSecure;
 
     @Value("${COOKIE_SAME_SITE:Lax}")
