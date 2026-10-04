@@ -1,5 +1,7 @@
 package com.flashcards.api.services;
 
+import com.flashcards.api.security.CurrentUserService;
+import com.flashcards.api.exceptions.ForbiddenException;
 import com.flashcards.api.dtos.response.ProfileResponseDTO;
 import com.flashcards.api.entities.User;
 import com.flashcards.api.repositories.DeckRepository;
@@ -18,6 +20,9 @@ public class ProfileService {
     private UserRepository userRepository;
 
     @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private DeckRepository deckRepository;
 
     @Autowired
@@ -25,6 +30,9 @@ public class ProfileService {
 
     @Transactional(readOnly = true)
     public ProfileResponseDTO getProfile(UUID userId) {
+        if (!userId.equals(currentUserService.getCurrentUserId())) {
+            throw new ForbiddenException("Acesso negado.");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));

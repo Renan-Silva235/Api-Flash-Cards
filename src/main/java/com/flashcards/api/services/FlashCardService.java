@@ -1,10 +1,11 @@
 package com.flashcards.api.services;
 
+import com.flashcards.api.security.CurrentUserService;
+import com.flashcards.api.exceptions.ResourceNotFoundException;
 import com.flashcards.api.dtos.request.CreateFlashCardRequest;
 import com.flashcards.api.entities.Deck;
 import com.flashcards.api.entities.FlashCard;
 import com.flashcards.api.enums.CardStatus;
-import com.flashcards.api.repositories.DeckRepository;
 import com.flashcards.api.repositories.FlashCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,25 @@ public class FlashCardService {
     private FlashCardRepository flashCardRepository;
 
     @Autowired
-    private DeckRepository deckRepository;
+    private DeckService deckService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    /**
+     * Busca um card de um deck do usuário logado. Card inexistente ou de outro
+     * usuário respondem igual ("não encontrado"), para não revelar que ele existe.
+     */
+    @Transactional(readOnly = true)
+    public FlashCard findOwnedCard(UUID id) {
+        return flashCardRepository.findByIdAndDeckUserId(id, currentUserService.getCurrentUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Flashcard não encontrado."));
+    }
 
     @Transactional
     public FlashCard create(CreateFlashCardRequest dto) {
-        Deck deck = deckRepository.findById(dto.deckId())
-                .orElseThrow(() -> new RuntimeException("Deck não encontrado."));
+        // Só deixa criar card em deck do próprio usuário
+        Deck deck = deckService.findOwnedDeck(dto.deckId());
 
         FlashCard card = new FlashCard();
         updateCardFields(card, dto);
@@ -36,8 +50,7 @@ public class FlashCardService {
 
     @Transactional
     public FlashCard update(UUID id, CreateFlashCardRequest dto) {
-        FlashCard card = flashCardRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Flashcard não encontrado."));
+        FlashCard card = findOwnedCard(id);
 
         updateCardFields(card, dto);
         return flashCardRepository.save(card);
@@ -45,6 +58,8 @@ public class FlashCardService {
 
     @Transactional(readOnly = true)
     public List<FlashCard> listByDeck(UUID deckId) {
+        deckService.findOwnedDeck(deckId);
+
         return flashCardRepository.findByDeckIdAndStatusIn(
                 deckId,
                 List.of(
@@ -56,17 +71,13 @@ public class FlashCardService {
 
     @Transactional(readOnly = true)
     public List<FlashCard> search(String term) {
-        return flashCardRepository.searchCards(term);
+        return flashCardRepository.searchCardsByUser(term, currentUserService.getCurrentUserId());
     }
 
     @Transactional
     public void delete(UUID id) {
-        System.out.println("DELETANDO CARD: " + id);
-        if (!flashCardRepository.existsById(id)) {
-            throw new RuntimeException("Flashcard não encontrado.");
-        }
-        flashCardRepository.deleteById(id);
-        System.out.println("EXISTE DEPOIS DO DELETE? " + flashCardRepository.existsById(id));
+        FlashCard card = findOwnedCard(id);
+        flashCardRepository.delete(card);
     }
 
     private void updateCardFields(FlashCard card, CreateFlashCardRequest dto) {

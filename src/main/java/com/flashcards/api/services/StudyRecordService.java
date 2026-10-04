@@ -10,7 +10,6 @@ import com.flashcards.api.enums.StudyResult;
 import com.flashcards.api.exceptions.ResourceNotFoundException;
 import com.flashcards.api.repositories.FlashCardRepository;
 import com.flashcards.api.repositories.StudyRecordRepository;
-import com.flashcards.api.repositories.StudySessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +23,19 @@ public class StudyRecordService {
     private StudyRecordRepository studyRecordRepository;
 
     @Autowired
-    private StudySessionRepository studySessionRepository;
+    private StudySessionService studySessionService;
 
     @Autowired
     private FlashCardRepository flashCardRepository;
 
     @Transactional
     public StudyRecord recordReview(UUID sessionId, RecordReviewRequestDTO dto) {
-        StudySession session = studySessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sessão de estudos não encontrada."));
+        // A sessão precisa ser do usuário logado...
+        StudySession session = studySessionService.findOwnedSession(sessionId);
 
+        // ...e o card precisa ser do mesmo deck da sessão
         FlashCard flashcard = flashCardRepository.findById(dto.flashcardId())
+                .filter(card -> card.getDeck().getId().equals(session.getDeck().getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard não encontrado."));
 
         StudyRecord record = new StudyRecord();

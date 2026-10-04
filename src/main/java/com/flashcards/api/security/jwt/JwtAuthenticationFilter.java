@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         // Adicione aqui todas as rotas que são públicas no seu sistema
-        return path.equals("/auth/login") || path.equals("/auth/register");
+        return path.equals("/auth/login") || path.equals("/auth/register") || path.equals("/auth/logout");
     }
 
 

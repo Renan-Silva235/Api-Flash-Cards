@@ -1,7 +1,6 @@
 package com.flashcards.api.dtos.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 public record DeckRequestDTO(
@@ -14,6 +13,7 @@ public record DeckRequestDTO(
         @NotBlank(message = "A categoria é obrigatória")
         String category,
 
-        @NotNull(message = "O ID do usuário é obrigatório")
+        // Ignorado pela API: o dono do deck é sempre o usuário do token.
+        // Mantido opcional só para não quebrar clientes que ainda enviam o campo.
         UUID userId
 ) {}

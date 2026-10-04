@@ -1,5 +1,6 @@
 package com.flashcards.api.repositories;
 
+import java.util.Optional;
 import com.flashcards.api.entities.FlashCard;
 import com.flashcards.api.enums.CardStatus;
 import com.flashcards.api.enums.DifficultyLevel;
@@ -34,9 +35,14 @@ public interface FlashCardRepository extends JpaRepository<FlashCard, UUID> {
 
     List<FlashCard> findByDeckId(@Param("deckId") UUID deckId);
 
-    @Query("SELECT f FROM FlashCard f WHERE LOWER(f.word) LIKE LOWER(CONCAT('%', :query, '%')) " +
-            "OR LOWER(f.translation) LIKE LOWER(CONCAT('%', :query, '%'))")
-    List<FlashCard> searchCards(@Param("query") String query);
+    // Busca só nos cards dos decks do usuário
+    @Query("SELECT f FROM FlashCard f WHERE f.deck.user.id = :userId AND (" +
+            "LOWER(f.word) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(f.translation) LIKE LOWER(CONCAT('%', :query, '%')))")
+    List<FlashCard> searchCardsByUser(@Param("query") String query, @Param("userId") UUID userId);
+
+    // Só encontra o card se o deck dele pertencer ao usuário informado
+    Optional<FlashCard> findByIdAndDeckUserId(UUID id, UUID userId);
 
     long countByDeckLanguage(String language);
 

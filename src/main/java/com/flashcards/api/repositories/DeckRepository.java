@@ -1,5 +1,6 @@
 package com.flashcards.api.repositories;
 
+import java.util.Optional;
 import com.flashcards.api.entities.Deck;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,9 @@ public interface DeckRepository extends JpaRepository<Deck, UUID> {
     """)
     List<Deck> findByUserId(@Param("userId") UUID userId);
     long countByUserId(UUID userId);
+
+    // Só encontra o deck se ele pertencer ao usuário informado
+    Optional<Deck> findByIdAndUserId(UUID id, UUID userId);
 
     long countByUserIdAndFavoriteTrue(UUID userId);
 }

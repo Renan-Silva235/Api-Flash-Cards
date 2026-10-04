@@ -42,8 +42,10 @@ public class StudySessionController {
     }
 
     @PutMapping("/{id}/end")
-    public ResponseEntity<StudySession> endSession(@PathVariable UUID id) {
+    public ResponseEntity<StudySessionResponseDTO> endSession(@PathVariable UUID id) {
+        // Devolve DTO (como o /start): a entidade tem relações lazy do Hibernate
+        // que o Jackson não consegue serializar, o que causava erro 400 aqui
         StudySession session = studySessionService.endSession(id);
-        return ResponseEntity.ok(session);
+        return ResponseEntity.ok(new StudySessionResponseDTO(session));
     }
 }

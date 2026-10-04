@@ -47,10 +47,7 @@ public class UserService {
         }
     }
 
-    public void validateEmailExists(String email) {
-
-        if (userRepository.findByEmail(email).isEmpty()) {
-            throw new RuntimeException("Não foi encontrado nenhum usuário com este e-mail.");
-        }
+    public boolean emailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
     }
 }

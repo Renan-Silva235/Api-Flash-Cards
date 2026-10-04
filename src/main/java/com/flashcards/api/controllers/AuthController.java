@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -71,16 +73,42 @@ public class AuthController {
     }
 
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+
+        // Sobrescreve o cookie com um valor vazio e maxAge 0, fazendo o navegador apagá-lo
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .build();
+    }
 
     @PostMapping("/password/send-code")
     public ResponseEntity<Void> sendPasswordCode(
             @RequestBody @Valid SendVerificationCodeDTO dto
     ) {
-        userService.validateEmailExists(dto.email());
-        verificationService.sendCode(
-                dto.email(),
-                VerificationType.CHANGE_PASSWORD
-        );
+        // Segurança: a resposta é sempre a mesma, exista ou não uma conta com esse e-mail,
+        // para não revelar quais e-mails estão cadastrados (enumeração de usuários).
+        // O envio roda em segundo plano para o tempo de resposta também não denunciar.
+        if (userService.emailExists(dto.email())) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    verificationService.sendCode(
+                            dto.email(),
+                            VerificationType.CHANGE_PASSWORD
+                    );
+                } catch (Exception e) {
+                    System.err.println("Erro ao enviar código de redefinição de senha: " + e.getMessage());
+                }
+            });
+        }
 
         return ResponseEntity.ok().build();
     }
