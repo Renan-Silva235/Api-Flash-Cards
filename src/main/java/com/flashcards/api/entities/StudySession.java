@@ -19,11 +19,23 @@ public class StudySession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "started_at", nullable = false, updatable = false)
+    // A sessão é uma por usuário + deck e é reaproveitada a cada novo estudo
+    @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
 
     @Column(name = "finished_at")
     private LocalDateTime finishedAt;
+
+    // Placar da sessão atual (zerado a cada início).
+    // Fácil = HIT, Médio = DIFFICULT, Difícil = MISTAKE
+    @Column(nullable = false)
+    private Integer easy = 0;
+
+    @Column(nullable = false)
+    private Integer medium = 0;
+
+    @Column(nullable = false)
+    private Integer hard = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "deck_id", nullable = false)

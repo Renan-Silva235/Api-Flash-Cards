@@ -26,6 +26,9 @@ public interface FlashCardRepository extends JpaRepository<FlashCard, UUID> {
                     WHEN com.flashcards.api.enums.DifficultyLevel.MEDIUM THEN 1
                     WHEN com.flashcards.api.enums.DifficultyLevel.EASY THEN 2
                 END,
+                CAST(f.hardCount * 2 + f.mediumCount AS double)
+                    / NULLIF(f.reviewCount, 0) DESC NULLS FIRST,
+                f.lastReviewedAt ASC NULLS FIRST,
                 f.createdAt ASC
 """)
     List<FlashCard> findByDeckIdAndStatusIn(

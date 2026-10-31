@@ -1,35 +1,34 @@
 package com.flashcards.api.services;
 
 import com.flashcards.api.dtos.request.RecordReviewRequestDTO;
+import com.flashcards.api.dtos.response.StudyRecordResponseDTO;
 import com.flashcards.api.entities.FlashCard;
-import com.flashcards.api.entities.StudyRecord;
 import com.flashcards.api.entities.StudySession;
-import com.flashcards.api.enums.CardStatus;
 import com.flashcards.api.enums.DifficultyLevel;
-import com.flashcards.api.enums.StudyResult;
 import com.flashcards.api.exceptions.ResourceNotFoundException;
 import com.flashcards.api.repositories.FlashCardRepository;
-import com.flashcards.api.repositories.StudyRecordRepository;
+import com.flashcards.api.repositories.StudySessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
 public class StudyRecordService {
 
     @Autowired
-    private StudyRecordRepository studyRecordRepository;
+    private StudySessionService studySessionService;
 
     @Autowired
-    private StudySessionService studySessionService;
+    private StudySessionRepository studySessionRepository;
 
     @Autowired
     private FlashCardRepository flashCardRepository;
 
     @Transactional
-    public StudyRecord recordReview(UUID sessionId, RecordReviewRequestDTO dto) {
+    public StudyRecordResponseDTO recordReview(UUID sessionId, RecordReviewRequestDTO dto) {
         // A sessão precisa ser do usuário logado...
         StudySession session = studySessionService.findOwnedSession(sessionId);
 
@@ -38,28 +37,36 @@ public class StudyRecordService {
                 .filter(card -> card.getDeck().getId().equals(session.getDeck().getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Flashcard não encontrado."));
 
-        StudyRecord record = new StudyRecord();
-        record.setStudySession(session);
-        record.setFlashCard(flashcard);
-        record.setResult(dto.result());
-        record.setDifficultyLevel(flashcard.getDifficulty());
+        // Em vez de gravar uma linha por revisão, atualiza os contadores do card e da sessão
+        DifficultyLevel previousDifficulty = flashcard.getDifficulty();
+        LocalDateTime reviewedAt = LocalDateTime.now();
+
+        flashcard.setReviewCount(flashcard.getReviewCount() + 1);
+        flashcard.setLastReviewedAt(reviewedAt);
 
         switch (dto.result()) {
             case MISTAKE:
                 flashcard.setDifficulty(DifficultyLevel.HARD);
+                flashcard.setHardCount(flashcard.getHardCount() + 1);
+                session.setHard(session.getHard() + 1);
                 break;
 
             case DIFFICULT:
                 flashcard.setDifficulty(DifficultyLevel.MEDIUM);
+                flashcard.setMediumCount(flashcard.getMediumCount() + 1);
+                session.setMedium(session.getMedium() + 1);
                 break;
 
             case HIT:
                 flashcard.setDifficulty(DifficultyLevel.EASY);
+                flashcard.setEasyCount(flashcard.getEasyCount() + 1);
+                session.setEasy(session.getEasy() + 1);
                 break;
         }
 
         flashCardRepository.save(flashcard);
+        studySessionRepository.save(session);
 
-        return studyRecordRepository.save(record);
+        return new StudyRecordResponseDTO(flashcard.getId(), dto.result(), previousDifficulty, reviewedAt);
     }
 }

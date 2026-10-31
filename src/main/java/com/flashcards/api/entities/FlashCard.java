@@ -49,6 +49,23 @@ public class FlashCard {
 
     private Boolean favorite = false;
 
+    // Histórico de revisões, usado para priorizar os cards no estudo.
+    // Fácil = HIT, Médio = DIFFICULT, Difícil = MISTAKE
+    @Column(name = "review_count", nullable = false)
+    private Integer reviewCount = 0;
+
+    @Column(name = "easy_count", nullable = false)
+    private Integer easyCount = 0;
+
+    @Column(name = "medium_count", nullable = false)
+    private Integer mediumCount = 0;
+
+    @Column(name = "hard_count", nullable = false)
+    private Integer hardCount = 0;
+
+    @Column(name = "last_reviewed_at")
+    private LocalDateTime lastReviewedAt;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

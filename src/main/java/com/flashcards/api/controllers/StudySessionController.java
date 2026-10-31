@@ -4,7 +4,6 @@ import com.flashcards.api.dtos.request.RecordReviewRequestDTO;
 import com.flashcards.api.dtos.request.StartSessionRequestDTO;
 import com.flashcards.api.dtos.response.StudyRecordResponseDTO;
 import com.flashcards.api.dtos.response.StudySessionResponseDTO;
-import com.flashcards.api.entities.StudyRecord;
 import com.flashcards.api.entities.StudySession;
 import com.flashcards.api.services.StudyRecordService;
 import com.flashcards.api.services.StudySessionService;
@@ -36,9 +35,7 @@ public class StudySessionController {
             @PathVariable UUID id,
             @RequestBody @Valid RecordReviewRequestDTO dto) {
 
-        StudyRecord record = studyRecordService.recordReview(id, dto);
-
-        return ResponseEntity.ok(new StudyRecordResponseDTO(record));
+        return ResponseEntity.ok(studyRecordService.recordReview(id, dto));
     }
 
     @PutMapping("/{id}/end")

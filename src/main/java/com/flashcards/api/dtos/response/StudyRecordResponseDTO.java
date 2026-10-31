@@ -1,13 +1,13 @@
 package com.flashcards.api.dtos.response;
 
 
-import com.flashcards.api.entities.StudyRecord;
 import com.flashcards.api.enums.DifficultyLevel;
 import com.flashcards.api.enums.StudyResult;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+// Resposta de uma revisão: id do card revisado, resultado e a dificuldade que ele tinha antes
 public record StudyRecordResponseDTO(
 
         UUID id,
@@ -16,13 +16,4 @@ public record StudyRecordResponseDTO(
         LocalDateTime reviewedAt
 
 ) {
-
-    public StudyRecordResponseDTO(StudyRecord record) {
-        this(
-                record.getId(),
-                record.getResult(),
-                record.getDifficultyLevel(),
-                record.getReviewedAt()
-        );
-    }
 }

@@ -41,11 +41,10 @@ public class StudySessionService {
         Deck deck = deckService.findOwnedDeck(dto.deckId());
         User user = currentUserService.getCurrentUser();
 
-        StudySession session = new StudySession();
-        session.setDeck(deck);
-        session.setUser(user);
-        session.setStartedAt(LocalDateTime.now());
-        return studySessionRepository.save(session);
+        // Reaproveita a sessão do usuário nesse deck em vez de criar uma nova linha
+        studySessionRepository.startOrRestart(user.getId(), deck.getId(), LocalDateTime.now());
+        return studySessionRepository.findByUserIdAndDeckId(user.getId(), deck.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sessão de estudos não encontrada."));
     }
 
     @Transactional
