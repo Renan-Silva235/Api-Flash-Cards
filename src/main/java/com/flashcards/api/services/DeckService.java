@@ -3,6 +3,7 @@ package com.flashcards.api.services;
 import com.flashcards.api.dtos.request.DeckRequestDTO;
 import com.flashcards.api.entities.Deck;
 import com.flashcards.api.entities.User;
+import com.flashcards.api.exceptions.ConflictException;
 import com.flashcards.api.exceptions.ForbiddenException;
 import com.flashcards.api.exceptions.ResourceNotFoundException;
 import com.flashcards.api.repositories.DeckRepository;
@@ -26,9 +27,15 @@ public class DeckService {
     public Deck createDeck(DeckRequestDTO dto) {
         // O dono é sempre o usuário do token; o userId do corpo é ignorado
         User user = currentUserService.getCurrentUser();
+        String name = dto.name().trim();
+
+        // Evita decks repetidos, inclusive quando o botão de criar é clicado duas vezes
+        if (deckRepository.existsByUserIdAndLanguageAndNameIgnoreCase(user.getId(), dto.language(), name)) {
+            throw new ConflictException("Você já tem um deck chamado \"" + name + "\" neste idioma.");
+        }
 
         Deck deck = new Deck();
-        deck.setName(dto.name());
+        deck.setName(name);
         deck.setLanguage(dto.language());
         deck.setCategory(dto.category());
         deck.setUser(user);

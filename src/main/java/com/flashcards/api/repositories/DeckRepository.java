@@ -26,4 +26,7 @@ public interface DeckRepository extends JpaRepository<Deck, UUID> {
     Optional<Deck> findByIdAndUserId(UUID id, UUID userId);
 
     long countByUserIdAndFavoriteTrue(UUID userId);
+
+    // Usado para não criar dois decks com o mesmo nome no mesmo idioma (sem diferenciar maiúsculas)
+    boolean existsByUserIdAndLanguageAndNameIgnoreCase(UUID userId, String language, String name);
 }
